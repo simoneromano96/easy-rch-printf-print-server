@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  nats:
+    image: nats
+    ports: 
+      - 4222:4222
+      - 8222:8222
+    command: "--store_dir /datastore --jetstream"
+    volumes:
+      - nats_data:/datastore
+
+# networks: 
+
+volumes:
+  nats_data:
