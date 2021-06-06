@@ -1,6 +1,11 @@
 version: "3"
 
 services:
+  print-server:
+    build: 
+      context: .
+      dockerfile: ./.docker/easy-rch-printf-print-server.dockerfile
+
   nats:
     image: nats
     ports: 
