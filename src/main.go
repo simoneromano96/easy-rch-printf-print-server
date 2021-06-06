@@ -2,14 +2,44 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	nats "github.com/nats-io/nats.go"
+	"github.com/spf13/viper"
 )
 
+type Config struct {
+	NATSUrl     string `mapstructure:"NATS_URL"`
+	RCHPrintUrl string `mapstructure:"RCH_PRINTF_URL"`
+}
+
+func loadConfig() (config Config, err error) {
+	viper.AddConfigPath("environment")
+	viper.SetConfigName("development")
+	viper.SetConfigType("yaml")
+
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		return
+	}
+
+	err = viper.Unmarshal(&config)
+	return
+}
+
 func main() {
+	config, err := loadConfig()
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
+	fmt.Println(config)
+
 	// Connect to NATS
-	nc, _ := nats.Connect(nats.DefaultURL)
+	nc, _ := nats.Connect(config.NATSUrl)
 
 	// Create JetStream Context
 	js, _ := nc.JetStream(nats.PublishAsyncMaxPending(1024))

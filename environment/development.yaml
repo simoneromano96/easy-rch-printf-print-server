@@ -1,0 +1,4 @@
+# NATS server URI
+NATS_URL: nats://127.0.0.1:4222
+# RCH Print! F URL
+RCH_PRINTF_URL: http://192.168.178.1

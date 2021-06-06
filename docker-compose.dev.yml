@@ -5,6 +5,8 @@ services:
     build: 
       context: .
       dockerfile: ./.docker/easy-rch-printf-print-server.dockerfile
+    environment:
+      NATS_SERVER: nats://nats:4222
 
   nats:
     image: nats
