@@ -1,9 +1,8 @@
-FROM golang:1.16
+FROM golang
 
-WORKDIR /go/src/app
+WORKDIR /easy-rch-printf-print-server
 COPY . .
 
-RUN go get -d -v ./src
-RUN go install -v ./src
+RUN go build ./src/main.go
 
-CMD ["main"]
+CMD ["/easy-rch-printf-print-server/main"]
