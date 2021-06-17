@@ -1,4 +1,8 @@
 # NATS server URI
 NATS_URL: nats://127.0.0.1:4222
+# NATS stream name
+NATS_STREAM_NAME: TEST
+# NATS subject
+NATS_SUBJECT: test
 # RCH Print! F URL
 RCH_PRINTF_URL: http://192.168.178.1
