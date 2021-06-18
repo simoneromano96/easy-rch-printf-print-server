@@ -1,13 +1,19 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"log"
-	"time"
 
 	nats "github.com/nats-io/nats.go"
 	"github.com/spf13/viper"
 )
+
+// PrintOrder struct to describe something that must be printed.
+type PrintOrder struct {
+	Command string `json:"command" validate:"required"`
+}
 
 type Config struct {
 	NATSUrl        string `mapstructure:"NATS_URL"`
@@ -17,10 +23,12 @@ type Config struct {
 }
 
 func loadConfig() (config Config, err error) {
+	// Read yaml config file
 	viper.AddConfigPath("environment")
 	viper.SetConfigName("development")
 	viper.SetConfigType("yaml")
 
+	// Override with ENV variables
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
@@ -40,13 +48,6 @@ func main() {
 
 	fmt.Println(config)
 
-	/*
-		fmt.Println(os.Getenv("NATS_URL"))
-		fmt.Println(os.Getenv("NATS_STREAM_NAME"))
-		fmt.Println(os.Getenv("NATS_SUBJECT"))
-		fmt.Println(os.Getenv("RCH_PRINTF_URL"))
-	*/
-
 	// Connect to NATS
 	nc, _ := nats.Connect(config.NATSUrl)
 
@@ -64,33 +65,28 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println(si)
-
-	// Simple Async Stream Publisher
-	for i := 0; i < 500; i++ {
-		js.PublishAsync(natsChannelName, []byte(fmt.Sprintf("order %d", i)))
-	}
-	select {
-	case <-js.PublishAsyncComplete():
-		fmt.Println("Resolved publish")
-	case <-time.After(5 * time.Second):
-		fmt.Println("Did not resolve in time")
-	}
-
-	time.Sleep(20 * time.Second)
 
 	// Simple Async Ephemeral Consumer
-	sub, err := js.Subscribe(natsChannelName, func(m *nats.Msg) {
-		fmt.Printf("Received a JetStream message: %s\n", string(m.Data))
+	_, err = js.Subscribe(natsChannelName, func(m *nats.Msg) {
+		// Create buffer for decoder
+		binData := bytes.NewBuffer(m.Data)
+		dec := gob.NewDecoder(binData)
+
+		// Decode the value.
+		var printOrder PrintOrder
+		err = dec.Decode(&printOrder)
+		if err != nil {
+			log.Print("decode error:", err)
+			return
+		}
+
+		fmt.Println(printOrder)
+		fmt.Println(printOrder.Command)
 	})
 
 	if err != nil {
 		panic(err)
 	}
 
-	// Unsubscribe
-	sub.Unsubscribe()
-
-	// Drain
-	sub.Drain()
+	select {}
 }

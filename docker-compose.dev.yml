@@ -7,8 +7,8 @@ services:
       dockerfile: ./.docker/easy-rch-printf-print-server.dockerfile
     environment:
       NATS_URL: nats://nats:4222
-      NATS_STREAM_NAME: ORDER
-      NATS_SUBJECT: print
+      NATS_STREAM_NAME: TEST
+      NATS_SUBJECT: test
       RCH_PRINTF_URL: http://localhost:9000
     depends_on: 
       - nats
