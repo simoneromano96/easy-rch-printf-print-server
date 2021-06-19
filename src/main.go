@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"net/http"
 
 	nats "github.com/nats-io/nats.go"
 	"github.com/spf13/viper"
@@ -66,6 +67,9 @@ func main() {
 		panic(err)
 	}
 
+	// HTTP Client
+	client := &http.Client{}
+
 	// Simple Async Ephemeral Consumer
 	_, err = js.Subscribe(natsChannelName, func(m *nats.Msg) {
 		// Create buffer for decoder
@@ -80,8 +84,26 @@ func main() {
 			return
 		}
 
-		fmt.Println(printOrder)
-		fmt.Println(printOrder.Command)
+		log.Println("Received a new printOrder")
+
+		// Build a new request
+		req, err := http.NewRequest("POST", config.RCHPrintFUrl, bytes.NewBuffer([]byte(printOrder.Command)))
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		// Set the Header here
+		req.Header.Add("Content-Type", "application/xml; charset=utf-8")
+
+		// Send the request
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		// Log the response
+		fmt.Println(resp)
 	})
 
 	if err != nil {

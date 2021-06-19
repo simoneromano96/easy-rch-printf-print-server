@@ -5,4 +5,4 @@ NATS_STREAM_NAME: TEST
 # NATS subject
 NATS_SUBJECT: test
 # RCH Print! F URL
-RCH_PRINTF_URL: http://192.168.178.1
+RCH_PRINTF_URL: http://192.168.178.75/service.cgi
