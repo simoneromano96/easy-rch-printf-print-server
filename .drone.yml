@@ -1,0 +1,25 @@
+---
+kind: pipeline
+name: easy-rch-printf-print-server
+
+steps:
+  - name: build
+    image: plugins/docker
+    settings:
+      registry: ghcr.io
+      username: simoneromano96
+      password: 
+        from_secret: token
+      repo: ghcr.io/simoneromano96/easy-rch-printf/print-server
+      context: .
+      dockerfile: ./.docker/easy-rch-printf-print-server.dockerfile
+      auto_tag: true
+      target: production
+      config:
+        from_secret: docker_auth_config
+
+trigger:
+  event:
+  - tag
+  - promote
+  - rollback
