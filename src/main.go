@@ -12,14 +12,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// The actual command
-type RCHCommand struct {
-	Command string `xml:"cmd"`
-}
-
 // RCH Request to be sent
-type RCHRequest struct {
-	Service RCHCommand `xml:"Service"`
+type Service struct {
+	Commands []string `xml:"cmd"`
 }
 
 type Config struct {
@@ -80,27 +75,33 @@ func main() {
 	_, err = js.Subscribe(natsChannelName, func(m *nats.Msg) {
 		// Create buffer for decoder
 		binData := bytes.NewBuffer(m.Data)
+		log.Println(string(m.Data))
+
 		dec := gob.NewDecoder(binData)
 
 		// Decode the value.
-		var printOrder RCHCommand
-		err = dec.Decode(&printOrder)
+		var rchRequest Service
+		err = dec.Decode(&rchRequest)
 		if err != nil {
 			log.Print("decode error:", err)
 			return
 		}
 
-		log.Println("Received a new printOrder")
+		log.Println("Received a new request")
+		log.Println(rchRequest)
 
 		// Initialize the encoder
 		var buffer bytes.Buffer
 		// Write to buffer
 		enc := xml.NewEncoder(&buffer)
-		err := enc.Encode(printOrder)
+		err := enc.Encode(rchRequest)
 		if err != nil {
 			log.Print(err)
 			return
 		}
+
+		log.Println("Encoded request")
+		log.Println(buffer.String())
 
 		// Build a new request
 		req, err := http.NewRequest("POST", config.RCHPrintFUrl, bytes.NewBuffer(buffer.Bytes()))
