@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,9 +12,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-// PrintOrder struct to describe something that must be printed.
-type PrintOrder struct {
-	Command string `json:"command" validate:"required"`
+// The actual command
+type RCHCommand struct {
+	Command string `xml:"cmd"`
+}
+
+// RCH Request to be sent
+type RCHRequest struct {
+	Service RCHCommand `xml:"Service"`
 }
 
 type Config struct {
@@ -77,7 +83,7 @@ func main() {
 		dec := gob.NewDecoder(binData)
 
 		// Decode the value.
-		var printOrder PrintOrder
+		var printOrder RCHCommand
 		err = dec.Decode(&printOrder)
 		if err != nil {
 			log.Print("decode error:", err)
@@ -86,8 +92,18 @@ func main() {
 
 		log.Println("Received a new printOrder")
 
+		// Initialize the encoder
+		var buffer bytes.Buffer
+		// Write to buffer
+		enc := xml.NewEncoder(&buffer)
+		err := enc.Encode(printOrder)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
 		// Build a new request
-		req, err := http.NewRequest("POST", config.RCHPrintFUrl, bytes.NewBuffer([]byte(printOrder.Command)))
+		req, err := http.NewRequest("POST", config.RCHPrintFUrl, bytes.NewBuffer(buffer.Bytes()))
 		if err != nil {
 			log.Print(err)
 			return

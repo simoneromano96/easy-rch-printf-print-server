@@ -9,7 +9,7 @@ services:
       NATS_URL: nats://nats:4222
       NATS_STREAM_NAME: TEST
       NATS_SUBJECT: test
-      RCH_PRINTF_URL: http://localhost:9000
+      RCH_PRINTF_URL: http://192.168.178.75/service.cgi
     depends_on: 
       - nats
 
